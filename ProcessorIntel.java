@@ -182,8 +182,10 @@ public class ProcessorIntel{
 				ProcessTable toCheckProcess=nextInstructionCheckList.next();
 				System.out.println("The process to be checked is :"+toCheckProcess.name);
 				//System.out.println("Running Process="+processor.runningProcess.name+"and to check is "+toCheckProcess.name);
+				//System.out.println("Running process just before toCheck:"+processor.runningProcess.name);
 				if(detailProcess.containsKey(toCheckProcess.name) && processor.runningProcess!=toCheckProcess ){
 					if(detailProcess.get(toCheckProcess.name).size()>0){
+						System.out.println("Adjusting for process"+toCheckProcess.name);
 						ProcessDetail det=detailProcess.get(toCheckProcess.name).getFirst();
 						System.out.println("While sendding to adjust"+det.flag);
 						if(det.flag==1)
@@ -193,6 +195,7 @@ public class ProcessorIntel{
 					}
 				}
 			}
+			processor.removeBlocked(i,arrayInput, detailProcess);
 			if(processor.state==0){
 				System.out.println("Choosing next");
 				processor.chooseNextProcess(i,systemMemory,arrayInput,detailProcess,processor.numberOfProcessFinished);

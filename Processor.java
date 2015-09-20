@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -110,7 +111,7 @@ public class Processor {
 				else{
 					//System.out.println("Reaching here");
 					try{
-						queue.remove(runningProcess);
+						queue.removeAll(Collections.singleton(runningProcess));
 					}
 					catch(Exception e){
 						System.out.println("pRcess not in queue");
@@ -125,6 +126,8 @@ public class Processor {
 						arrayIo[temp.deviceNumber].timeRem=temp.timeReq;
 						arrayIo[temp.deviceNumber].timeRequested=temp.timeReq;
 						runningProcess.status=2;
+						queue.removeAll(Collections.singleton(runningProcess));
+						runningProcess=null;
 					}
 					else{
 						arrayIo[temp.deviceNumber].inputqueue.add(runningProcess);
@@ -133,6 +136,8 @@ public class Processor {
 				}
 				if(!queue.isEmpty()){
 					System.out.println("Trying to get something from ready queue");
+					//cleanReadyQueue();
+					//if(detailsMap.get(process.name).getFirst)
 					ProcessTable process=queue.remove();
 					runningProcess=process;
 					runningProcess.status=1;
@@ -168,6 +173,17 @@ public class Processor {
 		
 		
 	}
+	private void cleanReadyQueue() {
+		// TODO Auto-generated method stub
+		Iterator<ProcessTable> iter=queue.iterator();
+		while(iter.hasNext()){
+			ProcessTable process=iter.next();
+			if(process.status==2 || process.status==1){
+				queue.remove(process);
+			}
+				
+		}
+	}
 	private String printReadQueue() {
 		// TODO Auto-generated method stub
 		Iterator<ProcessTable> iter=queue.iterator();
@@ -194,7 +210,7 @@ public class Processor {
 		}
 		
 	}
-	private void removeBlocked(int i1,InputOutput[] arrayIo, HashMap<String, LinkedList<ProcessDetail>> detailsMap) {
+	public void removeBlocked(int i1,InputOutput[] arrayIo, HashMap<String, LinkedList<ProcessDetail>> detailsMap) {
 		//Iterator<ProcessTable> blockedGuys=blockedQueue.iterator();
 		//while(blockedGuys.hasNext()){
 			//ProcessTable process=blockedGuys.next();
@@ -216,6 +232,10 @@ public class Processor {
 						if(state==0)
 							state=1;
 						if(queue.isEmpty()){
+							if(runningProcess!=null){
+								queue.add(runningProcess);
+								runningProcess.status=0;
+							}
 							runningProcess=arrayIo[i].usingProcess;
 							runningProcess.status=1;
 							runningProcess.currentInstructiontime=0;
