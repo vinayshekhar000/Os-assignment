@@ -118,10 +118,11 @@ public class ProcessorIntel{
 		}
 		//printProcessDetails(detailProcess,mapProcess);
 		System.out.println(detailProcess);
+		boolean shouldIContniue=true;
 		Memory systemMemory=new Memory(memory);
 		int i=1;
 		int totalNumberOfProcess=detailProcess.size();
-		while((!(processor.queue.isEmpty())||i<totalTimeInFile|| processor.state==1 || getCount(arrayInput)>0)&& processor.numberOfProcessFinished<totalNumberOfProcess){
+		do{
 			//processor.printProcessTable(i);
 			if(i%timeGran==0){
 				processor.chooseNextProcess(i,systemMemory,arrayInput,detailProcess,numberOfProcess);
@@ -200,10 +201,27 @@ public class ProcessorIntel{
 				System.out.println("Choosing next");
 				processor.chooseNextProcess(i,systemMemory,arrayInput,detailProcess,processor.numberOfProcessFinished);
 			}
-			System.out.println("Number of process:"+numberOfProcess);
+			System.out.println("Number of process:"+ processor.numberOfProcessFinished);
 			i=i+1;
-		}
+			shouldIContniue=checkIfMoreInstructions(detailProcess);
+		}while((!(processor.queue.isEmpty())||i<totalTimeInFile|| processor.state==1 || getCount(arrayInput)>0)&& processor.numberOfProcessFinished<totalNumberOfProcess && shouldIContniue);
 		System.out.println("Time taken is"+(i-start));
+	}
+
+	private static boolean checkIfMoreInstructions(
+			HashMap<String, LinkedList<ProcessDetail>> detailProcess) {
+		// TODO Auto-generated method stub
+		Set<String> keys = detailProcess.keySet();
+		Iterator<String> iter=keys.iterator();
+		while(iter.hasNext()){
+			String temp=iter.next();
+			//System.out.print(temp+" ");
+			LinkedList<ProcessDetail> list = detailProcess.get(temp);
+			if(list.size()>0)
+				return true;
+		}
+		
+		return false;
 	}
 
 	private static int getCount(InputOutput[] arrayInput) {

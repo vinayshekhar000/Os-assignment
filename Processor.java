@@ -93,69 +93,79 @@ public class Processor {
 				LinkedList<ProcessDetail> det=detailsMap.get(runningProcess.name);
 				System.out.println("Size before removing:"+det.size());
 				det.remove(0);
+				ProcessDetail something;
 				try{
-					ProcessDetail something=det.getFirst();
+					something=det.getFirst();
 				}
 				catch(Exception e){
 					numberOfProcessFinished+=1;
+					queue.removeAll(Collections.singleton(runningProcess));
 				}
 				//System.out.println("Head of the list now is  "+something.flag+"and size is "+ det.size());
-				runningProcess.currentInstructiontime=0;
-				detailsMap.put(runningProcess.name,det);
-				ProcessDetail temp=detailsMap.get(runningProcess.name).getFirst();
-				System.out.println("temp.flag="+temp.flag);
-				if(temp.flag==1){
-								queue.add(runningProcess);
-								runningProcess.currentInstructiontime=temp.timeReq;
+				if(det.size()>0){
+					runningProcess.currentInstructiontime=0;
+					detailsMap.put(runningProcess.name,det);
+					ProcessDetail temp=detailsMap.get(runningProcess.name).getFirst();
+					System.out.println("temp.flag="+temp.flag);
+					if(temp.flag==1){
+									queue.add(runningProcess);
+									runningProcess.currentInstructiontime=temp.timeReq;
+					}
+					else{
+						//System.out.println("Reaching here");
+						try{
+							queue.removeAll(Collections.singleton(runningProcess));
+						}
+						catch(Exception e){
+							System.out.println("pRcess not in queue");
+						}
+						try{
+						System.out.println("Head of the queue :"+arrayIo[temp.deviceNumber].inputqueue.peek().name);
+						}catch(Exception e){}
+						//System.out.println("Reaching here");
+						if(arrayIo[temp.deviceNumber].inputqueue.isEmpty()){
+							System.out.println("Using process is "+runningProcess.name);
+							arrayIo[temp.deviceNumber].usingProcess=runningProcess;
+							arrayIo[temp.deviceNumber].timeRem=temp.timeReq;
+							arrayIo[temp.deviceNumber].timeRequested=temp.timeReq;
+							runningProcess.status=2;
+							queue.removeAll(Collections.singleton(runningProcess));
+							runningProcess=null;
+						}
+						else{
+							arrayIo[temp.deviceNumber].inputqueue.add(runningProcess);
+							runningProcess.status=2;
+						}
+					}
+					if(!queue.isEmpty()){
+						System.out.println("Trying to get something from ready queue");
+						//cleanReadyQueue();
+						//if(detailsMap.get(process.name).getFirst)
+						ProcessTable process=queue.remove();
+						runningProcess=process;
+						runningProcess.status=1;
+						Iterator<ProcessTable> iter=memoryBlockedQueue.iterator();
+						putIntoReadQueue(iter,detailsMap,Obj);
+					}
+					else{//Means Ready queue is empty
+						if(!memoryBlockedQueue.isEmpty()){
+							Iterator<ProcessTable> iter=memoryBlockedQueue.iterator();
+							putIntoReadQueue(iter, detailsMap, Obj);
+						}
+						else{
+							System.out.println("Nothing to execute");
+							state=0;
+							runningProcess=null;
+						}
+					}
 				}
 				else{
-					//System.out.println("Reaching here");
-					try{
-						queue.removeAll(Collections.singleton(runningProcess));
-					}
-					catch(Exception e){
-						System.out.println("pRcess not in queue");
-					}
-					try{
-					System.out.println("Head of the queue :"+arrayIo[temp.deviceNumber].inputqueue.peek().name);
-					}catch(Exception e){}
-					//System.out.println("Reaching here");
-					if(arrayIo[temp.deviceNumber].inputqueue.isEmpty()){
-						System.out.println("Using process is "+runningProcess.name);
-						arrayIo[temp.deviceNumber].usingProcess=runningProcess;
-						arrayIo[temp.deviceNumber].timeRem=temp.timeReq;
-						arrayIo[temp.deviceNumber].timeRequested=temp.timeReq;
-						runningProcess.status=2;
-						queue.removeAll(Collections.singleton(runningProcess));
-						runningProcess=null;
-					}
-					else{
-						arrayIo[temp.deviceNumber].inputqueue.add(runningProcess);
-						runningProcess.status=2;
-					}
-				}
-				if(!queue.isEmpty()){
-					System.out.println("Trying to get something from ready queue");
-					//cleanReadyQueue();
-					//if(detailsMap.get(process.name).getFirst)
-					ProcessTable process=queue.remove();
-					runningProcess=process;
+					System.out.println("I was right");
+					System.out.println("The head of queue is"+queue.peek().name);
+					runningProcess=queue.remove();
 					runningProcess.status=1;
-					Iterator<ProcessTable> iter=memoryBlockedQueue.iterator();
-					putIntoReadQueue(iter,detailsMap,Obj);
 				}
-				else{//Means Ready queue is empty
-					if(!memoryBlockedQueue.isEmpty()){
-						Iterator<ProcessTable> iter=memoryBlockedQueue.iterator();
-						putIntoReadQueue(iter, detailsMap, Obj);
-					}
-					else{
-						System.out.println("Nothing to execute");
-						state=0;
-						runningProcess=null;
-					}
-				}
-			}
+			}//Copy till here
 			else{//Nothing gets unblocked here as Nothing is released from the memory
 				runningProcess.status=0;
 				queue.add(runningProcess);
