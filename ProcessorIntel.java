@@ -120,6 +120,7 @@ public class ProcessorIntel{
 		System.out.println(detailProcess);
 		boolean shouldIContniue=true;
 		Memory systemMemory=new Memory(memory);
+		Memory someMemory=new Memory(memory);
 		int i=1;
 		int totalNumberOfProcess=detailProcess.size();
 		do{
@@ -153,7 +154,7 @@ public class ProcessorIntel{
 							processor.runningProcess.currentInstructiontime=det.timeReq;
 						}
 						if(det.flag==1)
-							adjustSystemMemory(toStart,systemMemory,processor,det);
+							adjustSystemMemory(toStart,systemMemory,processor,det,someMemory);
 						else
 							adjustIo(toStart,det,arrayInput,toStart,i,processor);
 					}
@@ -161,17 +162,17 @@ public class ProcessorIntel{
 						//System.out.println("Enquing other process");
 						if(detailProcess.get(toStart.name).size()>0){
 							ProcessDetail det=detailProcess.get(toStart.name).getFirst();
-							adjustSystemMemory(toStart, systemMemory, processor, det);
+							adjustSystemMemory(toStart, systemMemory, processor, det,someMemory);
 						}
 					}
 					while(listiter.hasNext()){
 						ProcessTable other=listiter.next();
 						ProcessDetail det=detailProcess.get(other.name).getFirst();
-						adjustSystemMemory(other, systemMemory, processor, det);
+						adjustSystemMemory(other, systemMemory, processor, det,someMemory);
 					}
 				}
 				if(timeList.containsKey(i)){
-					//System.out.println("Printing table");
+					System.out.println("Printing table");
 					processor.printProcessTable(i,arrayInput);
 				}
 			//processor.mopUp();
@@ -190,7 +191,7 @@ public class ProcessorIntel{
 						ProcessDetail det=detailProcess.get(toCheckProcess.name).getFirst();
 						System.out.println("While sendding to adjust"+det.flag);
 						if(det.flag==1)
-							adjustSystemMemory(toCheckProcess,systemMemory,processor,det);
+							adjustSystemMemory(toCheckProcess,systemMemory,processor,det,someMemory);
 						else
 							adjustIo(toCheckProcess,det,arrayInput,toCheckProcess,i,processor);
 					}
@@ -285,16 +286,22 @@ public class ProcessorIntel{
 		}
 	}
 
-	private static void adjustSystemMemory(ProcessTable process,Memory systemMemory,Processor processor,ProcessDetail det) {
+	private static void adjustSystemMemory(ProcessTable process,Memory systemMemory,Processor processor,ProcessDetail det,Memory someMemory) {
 		if(systemMemory.freeMem-det.memory<=0){
 			process.status=2;
+			//System.out.println("Blocking "+process.name);
 			processor.memoryBlockedQueue.add(process);
 		}
+		if(someMemory.freeMem-det.memory<=0){
+			process.waitingOn="memory";
+		}
 		else{
-			processor.queue.add(process);
 			process.status=0;
-			if(process.currentInstructiontime==0)
+			if(process.currentInstructiontime==0){
+				processor.queue.add(process);
 				process.currentInstructiontime=det.timeReq;
+				someMemory.freeMem-=det.memory;
+			}
 			systemMemory.freeMem-=det.memory;
 		}
 	}
