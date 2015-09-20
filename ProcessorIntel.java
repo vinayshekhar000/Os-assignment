@@ -172,7 +172,7 @@ public class ProcessorIntel{
 				}
 				if(timeList.containsKey(i)){
 					//System.out.println("Printing table");
-					processor.printProcessTable(i);
+					processor.printProcessTable(i,arrayInput);
 				}
 			//processor.mopUp();
 			//someList = mapProcess.values();
@@ -264,6 +264,7 @@ public class ProcessorIntel{
 			System.out.println("Empty queue");
 			arrayIo[deviceNum].usingProcess=process;
 			arrayIo[deviceNum].usingProcess.status=2;
+			arrayIo[deviceNum].usingProcess.waitingOn="OnIo";
 			arrayIo[deviceNum].startTime=i;
 			System.out.println("The time requested is "+arrayIo[deviceNum].timeRequested);
 			if(arrayIo[deviceNum].timeRequested==0){
@@ -279,6 +280,7 @@ public class ProcessorIntel{
 		}
 		else{
 			process.status=2;
+			process.waitingOn="OnIo";
 			arrayIo[deviceNum].inputqueue.add(process);
 		}
 	}

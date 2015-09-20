@@ -1,8 +1,10 @@
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Set;
 public class Processor {
 	int maxProcess;
 	//PriorityQueue<ProcessTable> queue;
@@ -98,6 +100,7 @@ public class Processor {
 					something=det.getFirst();
 				}
 				catch(Exception e){
+					System.out.println("Fuck off"+runningProcess.name);
 					numberOfProcessFinished+=1;
 					queue.removeAll(Collections.singleton(runningProcess));
 				}
@@ -129,12 +132,14 @@ public class Processor {
 							arrayIo[temp.deviceNumber].timeRem=temp.timeReq;
 							arrayIo[temp.deviceNumber].timeRequested=temp.timeReq;
 							runningProcess.status=2;
+							runningProcess.waitingOn="OnIo";
 							queue.removeAll(Collections.singleton(runningProcess));
 							runningProcess=null;
 						}
 						else{
 							arrayIo[temp.deviceNumber].inputqueue.add(runningProcess);
 							runningProcess.status=2;
+							runningProcess.waitingOn="OnIo";
 						}
 					}
 					if(!queue.isEmpty()){
@@ -144,6 +149,7 @@ public class Processor {
 						ProcessTable process=queue.remove();
 						runningProcess=process;
 						runningProcess.status=1;
+						runningProcess.waitingOn="OnNothing";
 						Iterator<ProcessTable> iter=memoryBlockedQueue.iterator();
 						putIntoReadQueue(iter,detailsMap,Obj);
 					}
@@ -164,15 +170,18 @@ public class Processor {
 					System.out.println("The head of queue is"+queue.peek().name);
 					runningProcess=queue.remove();
 					runningProcess.status=1;
+					runningProcess.waitingOn="Nothing";
 				}
 			}//Copy till here
 			else{//Nothing gets unblocked here as Nothing is released from the memory
 				runningProcess.status=0;
+				runningProcess.waitingOn="Nothing";
 				queue.add(runningProcess);
 				ProcessTable process=queue.remove();
 				System.out.println("Removing from ready queue"+process.name);
 				runningProcess=process;
 				runningProcess.status=1;
+				runningProcess.waitingOn="Nothing";
 			}
 			
 		}
@@ -239,6 +248,7 @@ public class Processor {
 					if(arrayIo[i].timeRem<0){
 						System.out.println("Done with IO puttinng into ready queue:"+arrayIo[i].usingProcess.name);
 						arrayIo[i].usingProcess.status=0;
+						arrayIo[i].usingProcess.waitingOn="Nothing";
 						if(state==0)
 							state=1;
 						if(queue.isEmpty()){
@@ -248,6 +258,7 @@ public class Processor {
 							}
 							runningProcess=arrayIo[i].usingProcess;
 							runningProcess.status=1;
+							runningProcess.waitingOn="Nothing";
 							runningProcess.currentInstructiontime=0;
 						}
 						else{
@@ -265,6 +276,7 @@ public class Processor {
 							System.out.println("This shit is saying:"+det.timeReq);
 							runningProcess.currentInstructiontime=det.timeReq;
 							runningProcess.status=1;
+							runningProcess.waitingOn="Nothing";
 						}
 						if(!arrayIo[i].inputqueue.isEmpty()){
 							arrayIo[i].usingProcess=arrayIo[i].inputqueue.remove();
@@ -278,15 +290,31 @@ public class Processor {
 				}
 			}
 	}
-	public void printProcessTable(int i) {
+	public void printProcessTable(int i,InputOutput arrayIo[]) {
 		// TODO Auto-generated method stub
 		try{
-			Iterator<ProcessTable> iter=queue.iterator();
+			Set<ProcessTable> set = new HashSet<ProcessTable>();
+		    set.addAll(queue);
+			/*Iterator<ProcessTable> iter=queue.iterator();
 			while(iter.hasNext()){
 				ProcessTable entry=iter.next();
 				entry.timeUsed=i-entry.startTime;
 				entry.display();
-			}
+			}*/
+		    for(int j=0;j<arrayIo.length;j++){
+		    	if(arrayIo[j].usingProcess!=null){
+		    		set.add(arrayIo[j].usingProcess);
+		    	}
+		    	if(!arrayIo[j].inputqueue.isEmpty()){
+		    		set.addAll(arrayIo[j].inputqueue);
+		    	}
+		    }
+		    set.addAll(memoryBlockedQueue);
+		    for(ProcessTable entry:set){
+		    	//ProcessTable entry=iter.next();
+				entry.timeUsed=i-entry.startTime;
+				entry.display();
+		    }
 			runningProcess.timeUsed=i-runningProcess.startTime;
 			runningProcess.display();
 		}

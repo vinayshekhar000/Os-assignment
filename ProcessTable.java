@@ -10,6 +10,7 @@ public class ProcessTable{
 	int timeRem;//Time which is still to be spent on the processor
 	int status;//1 represents that the process is running and 0 represents that the process is in ready state and 2 for wait
 	int memory;//The total amount of memory required by the process
+	String waitingOn;
 	int currentInstructiontime;
 	InputOutput ioRequired;
 	ProcessTable(int PID,String n,int st,int timeReq,int timeUsed,int timeRem){
@@ -22,9 +23,10 @@ public class ProcessTable{
 		status=0;
 		ioRequired=new InputOutput();
 		currentInstructiontime=0;
+		waitingOn="Nothing";
 	}
 	public void display(){
-		System.out.println("ID:"+PID+" Name:"+name+" StartTime:"+startTime+" Time Required"+timeReq+" TimeUSed"+timeUsed+" Time Rem:"+timeRem+" Status"+status);
+		System.out.println("ID:"+PID+" Name:"+name+" StartTime:"+startTime+" Time Required"+timeReq+" TimeUSed"+timeUsed+" Time Rem:"+timeRem+" Status"+status+"Waiting on"+waitingOn);
 	}
 
 
